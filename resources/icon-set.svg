@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+<g id="Trash">
+    <path fill="none" stroke="#000000" stroke-miterlimit="10" d="M20.01,16v20V16z"/>
+    <path fill="none" stroke="#000000" stroke-miterlimit="10" d="M26.01,16v20V16z"/>
+    <path fill="none" stroke="#000000" stroke-miterlimit="10" d="M42.01,9h-33H42.01z"/>
+    <rect x="14.01" y="9" fill="none" stroke="#000000" stroke-miterlimit="10" width="24" height="33"/>
+    <rect x="20.01" y="5" fill="none" stroke="#000000" stroke-miterlimit="10" width="12" height="4"/>
+    <path fill="none" stroke="#000000" stroke-miterlimit="10" d="M32.01,16v20V16z"/>
+</g>
+<g id="Calendar">
+    <rect x="7" y="9" fill="none" stroke="#000000" stroke-miterlimit="10" width="36" height="33"/>
+    <line fill="none" stroke="#000000" stroke-width="0.9943" stroke-miterlimit="10" x1="42.83" y1="17.46" x2="7.24" y2="17.46"/>
+    <rect x="15" y="24" fill="none" stroke="#000000" stroke-miterlimit="10" width="4" height="4"/>
+    <rect x="15" y="32" fill="none" stroke="#000000" stroke-miterlimit="10" width="4" height="4"/>
+    <rect x="23" y="24" fill="none" stroke="#000000" stroke-miterlimit="10" width="4" height="4"/>
+    <rect x="23" y="32" fill="none" stroke="#000000" stroke-miterlimit="10" width="4" height="4"/>
+    <rect x="31" y="24" fill="none" stroke="#000000" stroke-miterlimit="10" width="4" height="4"/>
+    <rect x="31" y="32" fill="none" stroke="#000000" stroke-miterlimit="10" width="4" height="4"/>
+    <path fill="none" stroke="#000000" stroke-miterlimit="10" d="M15.98,4v5V4z"/>
+    <path fill="none" stroke="#000000" stroke-miterlimit="10" d="M33.98,4v5V4z"/>
+</g>
+<g id="Warning">
+    <path fill="none" stroke="#000000" stroke-miterlimit="10" d="M25,19v15V19z"/>
+    <path fill="none" stroke="#000000" stroke-miterlimit="10" d="M25,37.46v1V37.46z"/>
+    <polygon fill="none" stroke="#000000" stroke-miterlimit="10" points="25,7 46,43 4,43    "/>
+</g>
+<g id="File">
+    <polygon fill="none" stroke="#000000" stroke-miterlimit="10" points="30,6 39,15 39,42 11,42 11,6    "/>
+    <polyline fill="none" stroke="#000000" stroke-miterlimit="10" points="29,6 29,16 39,16  "/>
+</g>
+<g id="Back">
+    <polyline fill="none" stroke="#000000" stroke-miterlimit="10" points="35,44 15,24 35,4  "/>
+</g>
+<g id="Image">
+    <rect x="5.5" y="9" fill="none" stroke="#000000" stroke-miterlimit="10" width="39" height="30"/>
+    <circle fill="none" stroke="#000000" stroke-miterlimit="10" cx="34" cy="16.5" r="2.5"/>
+    <polyline fill="none" stroke="#000000" stroke-miterlimit="10" points="5.5,36 18.5,22 28,32.5 35,25.75 44.5,35.5     "/>
+</g>
+</svg>
