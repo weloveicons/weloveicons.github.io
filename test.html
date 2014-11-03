@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+<title>Icon Look Book</title>
+<meta charset="utf-8">
+<link rel="stylesheet" type="text/css" href="resources/topcoat-0.8.0/css/topcoat-desktop-light.css" />
+<style>
+html, body, .app {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+.app {
+    display: flex;
+}
+.preview {
+    flex: 1;
+    height: 100%;
+}
+.toolbar {
+    flex: 1;
+    height: 100%;
+}
+.app, .preview, .toolbar {
+    box-sizing: border-box;
+    background-clip: content-box;
+    background-color: rgba(200, 200, 200, .5);
+    padding: 1em;
+}
+</style>
+
+<script src="resources/react-0.12.0/build/react.js"></script>
+<script src="resources/react-0.12.0/build/JSXTransformer.js"></script>
+
+</head>
+<body>
+<script type="text/jsx" src="react-app.js"></script>
+</body>
+</html>
