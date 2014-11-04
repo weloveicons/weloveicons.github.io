@@ -27,34 +27,17 @@ html, body, .app {
     background-color: rgba(200, 200, 200, .5);
     padding: 1em;
 }
+svg {
+    width: 100px;
+    height: 100px;
+}
 </style>
+
+<script src="resources/react-0.12.0/build/react.js"></script>
+<script src="resources/react-0.12.0/build/JSXTransformer.js"></script>
+
 </head>
 <body>
-<div class="app">
-    <div class='preview'></div>
-    <div class='toolbar'>
-        
-        <label>
-            <input type="range" class="topcoat-range" />
-            38px
-        </label>
-
-        <p></p>
-
-        <label class="topcoat-radio-button">
-          <input type="radio" name="topcoat">
-          <div class="topcoat-radio-button__checkmark"></div>
-          Stroke
-        </label>
-
-
-        <label class="topcoat-radio-button">
-          <input type="radio" name="topcoat">
-          <div class="topcoat-radio-button__checkmark"></div>
-          Fill
-        </label>
-    </div>
-
-</div>
+<script type="text/jsx;harmony=true" src="react-app.js"></script>
 </body>
 </html>
