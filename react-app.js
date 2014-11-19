@@ -31,8 +31,8 @@ var icons = [
         { element: 'polyline', role: 'accent', points: [[26,16], [26,36]] },
         { element: 'polyline', role: 'accent', points: [[32,16], [32,36]] },
         { element: 'polyline', points: [[10,9], [42,9]] },
-        { element: 'rect', x: 14, y: 9, width: 25, height: 33 },
-        { element: 'rect', x: 20, y: 5, width: 12, height: 4 }
+        { element: 'polyline', fill: 'solid', points: [[14,9], [14,42], [39,42], [39,9]] },
+        { element: 'polyline', fill: 'solid', points: [[20,9], [20,5], [32,5], [32,9]] }
     ]
 },
 {
@@ -47,8 +47,8 @@ var icons = [
         { element: 'rect', role: 'accent', maxStroke: '3', x: 23, y: 32, width: 4, height: 4 },
         { element: 'rect', role: 'accent', maxStroke: '3', x: 31, y: 24, width: 4, height: 4 },
         { element: 'rect', role: 'accent', maxStroke: '3', x: 31, y: 32, width: 4, height: 4 },
-        { element: 'polyline', points: [[16,4], [16,9]] },
-        { element: 'polyline', points: [[34,4], [34,9]] }
+        { element: 'polyline', fill: 'none', points: [[16,4], [16,9]] },
+        { element: 'polyline', fill: 'none', points: [[34,4], [34,9]] }
     ]
 },
 {
@@ -65,14 +65,14 @@ var icons = [
     viewBox: [0,0,50,50],
     elements: [
         { element: 'polygon', points: [[30,6], [39,15], [39,42], [11,42], [11,6]] },
-        { element: 'polyline', role: 'accent', points: [[29,6], [29,16], [39,16]] }
+        { element: 'polyline', role: 'accent', fill: 'none', points: [[29,6], [29,16], [39,16]] }
     ]
 },
 {
     name: "Back",
     viewBox: [0,0,50,50],
     elements: [
-        { element: 'polyline', points: [[35,44], [15,24], [35,4]] }
+        { element: 'polyline', fill: 'none', points: [[35,44], [15,24], [35,4]] }
     ]
 },
 {
@@ -80,7 +80,7 @@ var icons = [
     viewBox: [0,0,50,50],
     elements: [
         { element: 'rect', x: 5, y: 9, width: 39, height: 30 },
-        { element: 'polyline', role: 'accent', points: [[5,36], [18,22], [28,32.5], [35,25.75], [44,35.5]] },
+        { element: 'polyline', role: 'accent', fill: 'none', points: [[5,36], [18,22], [28,32.5], [35,25.75], [44,35.5]] },
         { element: 'circle', role: 'accent', maxStroke: '3', cx: 34, cy: 16.5, r: 2.5 }
     ]
 }];
@@ -149,7 +149,7 @@ var Element = React.createClass({
                 props = { cx: cx, cy: cy, r: r };
                 return (<circle { ...props } { ...common }/>);
             case 'polyline':
-                props = { points: points, fill: 'none' };
+                props = { points: points };
                 return (<polyline { ...common } { ...props } />);
             case 'polygon':
                 props = { points: points };
@@ -184,7 +184,7 @@ var Icon = React.createClass({
         var elements = props.icon.elements.map(function(element, i) {
             if (element.role === "accent")
                 return;
-            return (<Element { ...element } index={ i } { ...props } key={ props.icon.name + i } strokeWidth={ props.stroke } stroke="black" fill="black" opacity="1" />);
+            return (<Element { ...element } index={ i } { ...props } key={ props.icon.name + i } strokeWidth={ props.stroke } stroke="black" fill={ element.fill === "none" ? "none" : "black" } opacity="1" />);
         });
         return (
             <svg viewBox={ this.props.icon.viewBox } >
