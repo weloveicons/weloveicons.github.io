@@ -1,0 +1,89 @@
+<html>
+<head>
+
+<style>
+.saturation-lightness {
+	width: 100px;
+	height: 100px;
+	background: linear-gradient(red, red), linear-gradient(left, white, transparent), linear-gradient(bottom, black, transparent);
+	background-image: linear-gradient(to top, black, transparent), linear-gradient(to right, white, transparent), linear-gradient(red, red);
+}
+.hue {
+	width: 50px;
+	height: 100px;
+	background: linear-gradient(to bottom, rgb(255, 0, 0), rgb(255, 255, 0), rgb(0, 255, 0), rgb(0, 255, 255), rgb(0, 0, 255), rgb(255, 0, 255), rgb(255, 0, 0));
+	x-background-color: hsl(0, 100%, 50%);
+}
+.selected {
+	width: 100px;
+	height: 100px;
+	border: 2px solid gray;
+}
+</style>
+<script src="resources/jqueryv2.1.1.min.js"></script>
+<script>
+function blend(color1, color2, p1) {
+	var result = [];
+	for (var i = 0; i < color1.length; i++) {
+		result.push(color1[i] * p1 + color2[i] * (1 - p1));
+	}
+	return result;
+}
+
+window.onload = function() {
+var el = document.querySelector('.saturation-lightness');
+el.onclick = function(event) {
+	var offset = $(event.target).offset();
+	var percentageX = (event.pageX - offset.left); // 100px wide/tall
+	var percentageY = (event.pageY - offset.top);
+	var color = [255, 0, 0];
+	color = blend(color, [255, 255, 255], percentageX / 100.0);
+	color = blend([0, 0, 0], color, percentageY / 100.0);
+	color = color.map(Math.round);
+	color = "rgb(" + color.join(',') + ")";
+	document.querySelector('.selected').style.backgroundColor = color;
+}
+el = document.querySelector('.hue');
+el.onclick = function(event) {
+	var offset = $(event.target).offset();
+	var percentageY = event.pageY - offset.top;
+	var group = Math.floor(percentageY / (100 / 6));
+	var offset = (percentageY % (100 / 6)) / (100 / 6);
+	var color = [0, 0, 0];
+	switch (group) {
+		case 0:
+			color = [255, offset * 255, 0];
+			break;
+		case 1:
+			color = [(1 - offset) * 255, 255, 0];
+			break;
+		case 2:
+			color = [0, 255, offset * 255];
+			break;
+		case 3:
+			color = [0, (1 - offset) * 255, 255];
+			break;
+		case 4:
+			color = [255 * offset, 0, 255];
+			break;
+		case 5:
+			color = [255, 0, (1 - offset) * 255];
+			break;
+		default: break;
+	}
+	color = color.map(Math.round);
+	color = "rgb(" + color.join(',') + ")";
+	document.querySelector('.selected').style.backgroundColor = color;
+}
+}
+</script>
+</head>
+<body>
+<div class='selected'>
+</div>
+<svg class='saturation-lightness'>
+</svg>
+<svg class='hue'>
+</svg>
+</body>
+</html>
