@@ -4,7 +4,8 @@ var App = React.createClass({
             size: 10,
             stroke: 1,
             corner: 0,
-            fill: false
+            fill: false,
+            color: "rgb(0,0,0)"
          };
     },
     handleValueChange: function(name, value) {
@@ -170,21 +171,21 @@ var Icon = React.createClass({
             if (element.role !== "accent")
                 return;
             settings = {
-                stroke: "black",
+                stroke: props.color,
                 fill: "none",
                 opacity: "1",
                 strokeWidth: props.stroke
             };
             if (element.maxStroke && props.stroke >= element.maxStroke) {
                 settings.stroke = "none";
-                settings.fill = "black";
+                settings.fill = props.color;
             }
             return (<Element { ...element } { ...props } key={ props.icon.name + i } { ...settings }  />);
         });
         var elements = props.icon.elements.map(function(element, i) {
             if (element.role === "accent")
                 return;
-            return (<Element { ...element } index={ i } { ...props } key={ props.icon.name + i } strokeWidth={ props.stroke } stroke="black" fill={ element.fill === "none" ? "none" : "black" } opacity="1" />);
+            return (<Element { ...element } index={ i } { ...props } key={ props.icon.name + i } strokeWidth={ props.stroke } stroke={ props.color } fill={ element.fill === "none" ? "none" : props.color } opacity="1" />);
         });
         return (
             <svg viewBox={ this.props.icon.viewBox } >
@@ -203,7 +204,7 @@ var Icon = React.createClass({
     renderStroked: function() {
         var props = this.props;
         var elements = props.icon.elements.map(function(element, i) {
-           return (<Element { ...element } index={ i } { ...props } key={ props.icon.name + i } strokeWidth={ props.stroke } stroke="black" fill="none" opacity="1" />); 
+           return (<Element { ...element } index={ i } { ...props } key={ props.icon.name + i } strokeWidth={ props.stroke } stroke={ props.color } fill="none" opacity="1" />); 
         });
         return (
             <svg viewBox={ this.props.icon.viewBox } >
@@ -240,6 +241,7 @@ var Toolbar = React.createClass({
                 <Slider name="stroke" value={ this.props.stroke } valueChanged = { this.props.valueChanged } />
                 <Slider name="corner" value={ this.props.corner } valueChanged = { this.props.valueChanged } />
                 <Checkbox name="fill" value={ this.props.fill } valueChanged = { this.props.valueChanged } />
+                <ColorPicker name="color-picker" valueChanged = { this.props.valueChanged } />
             </div>
         );
     }
@@ -279,8 +281,168 @@ var Slider = React.createClass({
     }
 });
 
+var ColorPicker = React.createClass({
+    getInitialState: function() {
+        return {
+            whiteTint: 0,
+            blackTint: 0,
+            hue: 0,
+            hueDragging: false,
+            tintDragging: false
+        }
+    },
+    hueToRGB: function(offset) {
+        var percentage = offset * 100;
+        var group = Math.floor(percentage / (100 / 6));
+        var groupOffset = (percentage % (100 / 6)) / (100 / 6);
+        var color = [0, 0, 0];
+        switch (group) {
+            case 0:
+                color = [255, groupOffset * 255, 0];
+                break;
+            case 1:
+                color = [(1 - groupOffset) * 255, 255, 0];
+                break;
+            case 2:
+                color = [0, 255, groupOffset * 255];
+                break;
+            case 3:
+                color = [0, (1 - groupOffset) * 255, 255];
+                break;
+            case 4:
+                color = [255 * groupOffset, 0, 255];
+                break;
+            case 5:
+                color = [255, 0, (1 - groupOffset) * 255];
+                break;
+            default: break;
+        }
+        color = color.map(Math.round);
+        return color;
+    },
+    tint: function(color, tint, p) {
+        var composite = color.slice(0);
+        for (var i = 0; i < composite.length; i++) {
+            composite[i] = color[i] * (1 - p) + tint[i] * p;
+        }
+        return composite;
+    },
+    colorString: function(color) {
+        color = color.map(Math.round);
+        return "rgb(" + color.join(',') + ")";
+    },
+    currentColorString: function() {
+        var color = this.hueToRGB(this.state.hue),
+        color = this.tint(color, [255, 255, 255], this.state.whiteTint);
+        color = this.tint(color, [0, 0, 0], this.state.blackTint);
+        return this.colorString(color);
+    },
+    hueChange: function(event) {
+        console.log(event.type);
+        var offset = $(event.target).offset();
+        obj = {};
+        obj.hue = (event.pageY - offset.top) / 100.0;
+        switch(event.type) {
+            case 'mousedown':
+                obj.hueDragging = true;
+                break;
+            case 'mouseup':
+            case 'mouseout':
+                obj.hueDragging = false;
+                break;
+            default:
+                if (!this.state.hueDragging)
+                    return;
+        }
+        this.setState(obj);
+        this.handleValueChange('color', this.currentColorString());
+    },
+    tintChange: function(event) {
+        var offset = $(event.target).offset();
+        var obj = {};
+        obj.whiteTint = (100 - event.pageX + offset.left) / 100.0;
+        obj.blackTint = (event.pageY - offset.top) / 100.0;
+        console.log(event.type);
+        // switch(event.type) {
+        //     case 'mousedown':
+        //         obj.tintDragging = true;
+        //         break;
+        //     case 'mouseout':
+        //     case 'mouseup':
+        //         obj.tintDragging = false;
+        //         break;
+        //     default:
+        //         if (!this.state.tintDragging) {
+        //             console.log("tint dragging? ", this.state.tintDragging);
+        //             return;
+        //         }
+        // }
+        this.setState(obj);
+        this.handleValueChange('color', this.currentColorString());
+    },
+    handleValueChange: function(name, value) {
+        this.props.valueChanged(name, value);
+    },
+    componentDidMount: function() {
+        console.log('component mounted');
+
+    },
+    divMove: function(event) {
+        console.log(event.type);
+    },
+    render: function() {
+        var hueColor = this.hueToRGB(this.state.hue),
+            tintColor = this.tint(hueColor, [255, 255, 255], this.state.whiteTint);
+        tintColor = this.tint(tintColor, [0, 0, 0], this.state.blackTint);
+        var hueY = this.state.hue * 100;
+        var points = [20, hueY, 25, hueY - 3, 25, hueY + 3];
+        points = points.reduce(function(prev, curr, i) {
+            prev += i % 2 ? ' ' : ',';
+            prev += curr;
+            return prev;
+        });
+        return (
+            <div onMouseMove={ this.divMove }>
+            <svg id="color-preview" viewBox="0 0 50 50">
+                <rect x="0" y="0" height="50" width="50" fill={ this.colorString(tintColor) } />
+            </svg>
+            <svg id="tint" viewBox="0 0 100 100" onDragStart={ this.tintChange } onMouseMove={ this.tintChange }>
+                <defs>
+                    <linearGradient id="whiteTint" x1="0" x2="1" y1="0" y2="0">
+                        <stop offset="0%" stopColor="white" stopOpacity="1" />
+                        <stop offset="100%" stopColor="white" stopOpacity="0" />
+                    </linearGradient>
+                    <linearGradient id="blackTint" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor="black" stopOpacity="0" />
+                        <stop offset="100%" stopColor="black" stopOpacity="1" />
+                    </linearGradient>
+                </defs>
+                <rect id="background" x="0" width="100" y="0" height="100" fill={ this.colorString(hueColor) } />
+                <rect x="0" width="100" y="0" height="100" fill="url(#whiteTint)" />
+                <rect x="0" width="100" y="0" height="100" fill="url(#blackTint)" />
+            </svg>
+            <svg id="hue" viewBox="0 0 30 100">
+                <defs>
+                    <linearGradient id="hueBar" x1="0" x2="0" y1="0" y2="1" >
+                        <stop offset="0%" stopColor="#ff0000" />
+                        <stop offset="16.67%" stopColor="#ffff00" />
+                        <stop offset="33.33%" stopColor="#00ff00" />
+                        <stop offset="50%" stopColor="#00ffff" />
+                        <stop offset="66.67%" stopColor="#0000ff" />
+                        <stop offset="83.33%" stopColor="#ff00ff" />
+                        <stop offset="100%" stopColor="#ff0000" />
+                    </linearGradient>
+                </defs>
+                <rect x="0" y="0" height="100" width="20" fill="url(#hueBar)"
+                    onMouseMove={ this.hueChange } />
+                <polygon points={ points } />
+            </svg>
+            </div>
+        );
+    }
+});
+
 React.render(
     <App />
-,
-document.body
+    , document.body
 );
