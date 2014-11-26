@@ -337,58 +337,27 @@ var ColorPicker = React.createClass({
         color = this.tint(color, [0, 0, 0], this.state.blackTint);
         return this.colorString(color);
     },
-    hueChange: function(event) {
-        console.log(event.type);
+    hueDragStart: function() { this.setState({ hueDragging: true })},
+    hueDragEnd: function() { this.setState({ hueDragging: false })},
+    hueMove: function(event) {
         var offset = $(event.target).offset();
         obj = {};
         obj.hue = (event.pageY - offset.top) / 100.0;
-        switch(event.type) {
-            case 'mousedown':
-                obj.hueDragging = true;
-                break;
-            case 'mouseup':
-            case 'mouseout':
-                obj.hueDragging = false;
-                break;
-            default:
-                if (!this.state.hueDragging)
-                    return;
-        }
         this.setState(obj);
         this.handleValueChange('color', this.currentColorString());
     },
-    tintChange: function(event) {
+    tintDragStart: function() { this.setState({ tintDragging: true })},
+    tintDragEnd: function() { this.setState({ tintDragging: false })},
+    tintMove: function(event) {
         var offset = $(event.target).offset();
         var obj = {};
         obj.whiteTint = (100 - event.pageX + offset.left) / 100.0;
         obj.blackTint = (event.pageY - offset.top) / 100.0;
-        console.log(event.type);
-        // switch(event.type) {
-        //     case 'mousedown':
-        //         obj.tintDragging = true;
-        //         break;
-        //     case 'mouseout':
-        //     case 'mouseup':
-        //         obj.tintDragging = false;
-        //         break;
-        //     default:
-        //         if (!this.state.tintDragging) {
-        //             console.log("tint dragging? ", this.state.tintDragging);
-        //             return;
-        //         }
-        // }
         this.setState(obj);
         this.handleValueChange('color', this.currentColorString());
     },
     handleValueChange: function(name, value) {
         this.props.valueChanged(name, value);
-    },
-    componentDidMount: function() {
-        console.log('component mounted');
-
-    },
-    divMove: function(event) {
-        console.log(event.type);
     },
     render: function() {
         var hueColor = this.hueToRGB(this.state.hue),
@@ -402,11 +371,11 @@ var ColorPicker = React.createClass({
             return prev;
         });
         return (
-            <div onMouseMove={ this.divMove }>
+            <div>
             <svg id="color-preview" viewBox="0 0 50 50">
                 <rect x="0" y="0" height="50" width="50" fill={ this.colorString(tintColor) } />
             </svg>
-            <svg id="tint" viewBox="0 0 100 100" onDragStart={ this.tintChange } onMouseMove={ this.tintChange }>
+            <svg id="tint" viewBox="0 0 100 100" onMouseDown={ this.tintDragStart } onMouseUp={ this.tintDragEnd } onMouseOut={ this.tintDragEnd } onMouseMove={ this.state.tintDragging ? this.tintMove : null }>
                 <defs>
                     <linearGradient id="whiteTint" x1="0" x2="1" y1="0" y2="0">
                         <stop offset="0%" stopColor="white" stopOpacity="1" />
@@ -421,7 +390,7 @@ var ColorPicker = React.createClass({
                 <rect x="0" width="100" y="0" height="100" fill="url(#whiteTint)" />
                 <rect x="0" width="100" y="0" height="100" fill="url(#blackTint)" />
             </svg>
-            <svg id="hue" viewBox="0 0 30 100">
+            <svg id="hue" viewBox="0 0 30 100" onMouseDown={ this.hueDragStart } onMouseUp={ this.hueDragEnd } onMouseOut={ this.hueDragEnd } onMouseMove={ this.state.hueDragging ? this.hueMove : null }>
                 <defs>
                     <linearGradient id="hueBar" x1="0" x2="0" y1="0" y2="1" >
                         <stop offset="0%" stopColor="#ff0000" />
@@ -433,8 +402,7 @@ var ColorPicker = React.createClass({
                         <stop offset="100%" stopColor="#ff0000" />
                     </linearGradient>
                 </defs>
-                <rect x="0" y="0" height="100" width="20" fill="url(#hueBar)"
-                    onMouseMove={ this.hueChange } />
+                <rect x="0" y="0" height="100" width="20" fill="url(#hueBar)" />
                 <polygon points={ points } />
             </svg>
             </div>
