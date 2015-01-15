@@ -1,7 +1,7 @@
 var App = React.createClass({
     getInitialState: function() {
         return { 
-            size: 10,
+            size: 50,
             stroke: 1,
             corner: 0,
             fill: false,
@@ -165,6 +165,12 @@ var Element = React.createClass({
 });
 
 var Icon = React.createClass({
+    getStyle: function() {
+        return {
+            width: this.props.size + 'px',
+            height: this.props.size + 'px'
+        }
+    },
     renderFilled: function() {
         var props = this.props, settings;
         var mask = props.icon.elements.map(function(element, i) {
@@ -188,7 +194,7 @@ var Icon = React.createClass({
             return (<Element { ...element } index={ i } { ...props } key={ props.icon.name + i } strokeWidth={ props.stroke } stroke={ props.color } fill={ element.fill === "none" ? "none" : props.color } opacity="1" />);
         });
         return (
-            <svg viewBox={ this.props.icon.viewBox } >
+            <svg viewBox={ this.props.icon.viewBox } style={ this.getStyle() }>
                 <defs>
                     <mask id={ props.icon.name + '-mask' }>
                         <rect x="0" y="0" width="50" height="50" fill="white" />
@@ -207,7 +213,7 @@ var Icon = React.createClass({
            return (<Element { ...element } index={ i } { ...props } key={ props.icon.name + i } strokeWidth={ props.stroke } stroke={ props.color } fill="none" opacity="1" />); 
         });
         return (
-            <svg viewBox={ this.props.icon.viewBox } >
+            <svg viewBox={ this.props.icon.viewBox } style={ this.getStyle() }>
                 { elements }
             </svg>
         );
@@ -235,11 +241,33 @@ var Preview = React.createClass({
 
 var Toolbar = React.createClass({
     render: function() {
+        var sliders = [
+            {
+                key: "size",
+                min: 20,
+                max: 100,
+                value: this.props.size
+            },
+            {
+                key: "stroke",
+                min: 1,
+                max: 6,
+                value: this.props.stroke
+            },
+            {
+                key: "corner",
+                min: 0,
+                max: 8,
+                value: this.props.corner
+            }
+        ];
+        var outer = this;
+        sliders = sliders.map(function(slider) {
+            return (<Slider name={ slider.key } key={ slider.key } value={ slider.value } min={ slider.min } max={ slider.max } valueChanged={ outer.props.valueChanged } />);
+        });
         return (
             <div className="toolbar">
-                <Slider name="size" value={ this.props.size } valueChanged = { this.props.valueChanged } />
-                <Slider name="stroke" value={ this.props.stroke } valueChanged = { this.props.valueChanged } />
-                <Slider name="corner" value={ this.props.corner } valueChanged = { this.props.valueChanged } />
+                { sliders }
                 <Checkbox name="fill" value={ this.props.fill } valueChanged = { this.props.valueChanged } />
                 <ColorPicker name="color-picker" valueChanged = { this.props.valueChanged } />
             </div>
@@ -254,8 +282,8 @@ var Checkbox = React.createClass({
     render: function() {
         return (
             <div>
-            <label className="topcoat-checkbox">
-                { this.props.name }
+            <label className="topcoat-checkbox checkbox-widget">
+                <span className="label">{ this.props.name }</span>
                 <input type="checkbox" name={ this.props.name } checked={ this.props.value } onChange={ this.handleChange } />
                 <div className="topcoat-checkbox__checkmark"></div>
             </label>
@@ -270,10 +298,10 @@ var Slider = React.createClass({
     },
     render: function() {
         return (
-            <div>
+            <div className="slider-widget">
             <label>
-                { this.props.name }
-                <input type="range" min="0" max="10" value={ this.props.value } className="topcoat-range" onChange={ this.handleChange } />
+                <span className="label">{ this.props.name }</span>
+                <input type="range" min={ this.props.min } max={ this.props.max } value={ this.props.value } className="topcoat-range" onChange={ this.handleChange } />
                 <input type="text" value={ this.props.value } className="topcoat-text-input" onChange={ this.handleChange } />
             </label>
             </div>
@@ -292,9 +320,8 @@ var ColorPicker = React.createClass({
         }
     },
     hueToRGB: function(offset) {
-        var percentage = offset * 100;
-        var group = Math.floor(percentage / (100 / 6));
-        var groupOffset = (percentage % (100 / 6)) / (100 / 6);
+        var group = Math.floor(offset * 6);
+        var groupOffset = offset * 6 - group;
         var color = [0, 0, 0];
         switch (group) {
             case 0:
@@ -318,6 +345,7 @@ var ColorPicker = React.createClass({
             default: break;
         }
         color = color.map(Math.round);
+        console.log("Hue to RGB", color);
         return color;
     },
     tint: function(color, tint, p) {
@@ -331,6 +359,15 @@ var ColorPicker = React.createClass({
         color = color.map(Math.round);
         return "rgb(" + color.join(',') + ")";
     },
+    hexString: function() {
+        var color = this.hueToRGB(this.state.hue);
+        color = this.tint(color, [255, 255, 255], this.state.whiteTint);
+        color = this.tint(color, [0, 0, 0], this.state.blackTint);
+        color = color.map(function(number) {
+            return Number(Math.round(number)).toString(16);
+        });
+        return color.join("");
+    },
     currentColorString: function() {
         var color = this.hueToRGB(this.state.hue),
         color = this.tint(color, [255, 255, 255], this.state.whiteTint);
@@ -339,7 +376,7 @@ var ColorPicker = React.createClass({
     },
     hueDragStart: function() { this.setState({ hueDragging: true })},
     hueDragEnd: function() { this.setState({ hueDragging: false })},
-    hueMove: function(event) {
+    hueChange: function(event) {
         var offset = $(event.target).offset();
         obj = {};
         obj.hue = (event.pageY - offset.top) / 100.0;
@@ -348,7 +385,7 @@ var ColorPicker = React.createClass({
     },
     tintDragStart: function() { this.setState({ tintDragging: true })},
     tintDragEnd: function() { this.setState({ tintDragging: false })},
-    tintMove: function(event) {
+    tintChange: function(event) {
         var offset = $(event.target).offset();
         var obj = {};
         obj.whiteTint = (100 - event.pageX + offset.left) / 100.0;
@@ -359,12 +396,46 @@ var ColorPicker = React.createClass({
     handleValueChange: function(name, value) {
         this.props.valueChanged(name, value);
     },
+    handleStringChange: function(event) {
+        var color = event.target.value;
+        if (!/^[a-f0-9]{6}$/i.test(color))
+            return;
+        color = color.match(/[a-f0-9]{2}/ig);
+        color = color.map(function(number) {
+            return Number.parseInt(number, 16);
+        });
+        var max = color[0], min = color[1], maxi = 0, mini = 1;
+        color.forEach(function(component, i) {
+            if (component > max) {
+                max = component;
+                maxi = i;
+            }
+            if (component < min) {
+                min = component;
+                mini = i;
+            }
+        });
+        var midi = (mini === (maxi + 1) % 3) ? (maxi + 2) % 3 : (maxi + 1) % 3;
+        // if min === max, you're a gray
+        var w = (max) / (max + min);
+        var b = (max + min) / 255;
+        var hue = [0, 0, 0];
+        hue[maxi] = 255;
+        hue[midi] = Math.round(color[midi] - 255 * b * (1 - w)) / (b * w);
+        console.log("Hue", hue, "tintw", 1 - w, "tintb", 1 - b);
+        var huePeak = (maxi) / 3.0;
+        var hueOffset = ((maxi + 1) % 3 === midi) ? hue[midi] : -hue[midi];
+        hueOffset = hueOffset / 255.0 / 6.0;
+        hue = huePeak + hueOffset;
+        if (hue < 0) hue += 1;
+        this.setState({ hue: hue, whiteTint: 1 - w, blackTint: 1 - b });
+    },
     render: function() {
         var hueColor = this.hueToRGB(this.state.hue),
             tintColor = this.tint(hueColor, [255, 255, 255], this.state.whiteTint);
         tintColor = this.tint(tintColor, [0, 0, 0], this.state.blackTint);
         var hueY = this.state.hue * 100;
-        var points = [20, hueY, 25, hueY - 3, 25, hueY + 3];
+        var points = [20, hueY, 30, hueY - 6, 30, hueY + 6];
         points = points.reduce(function(prev, curr, i) {
             prev += i % 2 ? ' ' : ',';
             prev += curr;
@@ -375,7 +446,7 @@ var ColorPicker = React.createClass({
             <svg id="color-preview" viewBox="0 0 50 50">
                 <rect x="0" y="0" height="50" width="50" fill={ this.colorString(tintColor) } />
             </svg>
-            <svg id="tint" viewBox="0 0 100 100" onMouseDown={ this.tintDragStart } onMouseUp={ this.tintDragEnd } onMouseOut={ this.tintDragEnd } onMouseMove={ this.state.tintDragging ? this.tintMove : null }>
+            <svg id="tint" viewBox="0 0 100 100" onClick={ this.tintChange } onMouseDown={ this.tintDragStart } onMouseUp={ this.tintDragEnd } onMouseMove={ this.state.tintDragging ? this.tintChange : null }>
                 <defs>
                     <linearGradient id="whiteTint" x1="0" x2="1" y1="0" y2="0">
                         <stop offset="0%" stopColor="white" stopOpacity="1" />
@@ -385,12 +456,18 @@ var ColorPicker = React.createClass({
                         <stop offset="0%" stopColor="black" stopOpacity="0" />
                         <stop offset="100%" stopColor="black" stopOpacity="1" />
                     </linearGradient>
+                    <mask id="focus-mask">
+                        <rect x="0" y="0" width="100" height="100" fill="white" />
+                        <circle cx={ (1 - this.state.whiteTint) * 100 } cy={ this.state.blackTint * 100 } r="10" stroke="black" strokeWidth="2" fill="white"/>
+                    </mask>
                 </defs>
-                <rect id="background" x="0" width="100" y="0" height="100" fill={ this.colorString(hueColor) } />
-                <rect x="0" width="100" y="0" height="100" fill="url(#whiteTint)" />
-                <rect x="0" width="100" y="0" height="100" fill="url(#blackTint)" />
+                <g style={{ mask: "url(#focus-mask)" }}>
+                    <rect id="background" x="0" width="100" y="0" height="100" fill={ this.colorString(hueColor) } />
+                    <rect x="0" width="100" y="0" height="100" fill="url(#whiteTint)" />
+                    <rect x="0" width="100" y="0" height="100" fill="url(#blackTint)" />
+                </g>
             </svg>
-            <svg id="hue" viewBox="0 0 30 100" onMouseDown={ this.hueDragStart } onMouseUp={ this.hueDragEnd } onMouseOut={ this.hueDragEnd } onMouseMove={ this.state.hueDragging ? this.hueMove : null }>
+            <svg id="hue" viewBox="0 0 30 100" onClick={ this.hueChange } onMouseDown={ this.hueDragStart } onMouseUp={ this.hueDragEnd } onMouseMove={ this.state.hueDragging ? this.hueChange : null }>
                 <defs>
                     <linearGradient id="hueBar" x1="0" x2="0" y1="0" y2="1" >
                         <stop offset="0%" stopColor="#ff0000" />
@@ -405,6 +482,7 @@ var ColorPicker = React.createClass({
                 <rect x="0" y="0" height="100" width="20" fill="url(#hueBar)" />
                 <polygon points={ points } />
             </svg>
+            <input type="text" className="topcoat-text-input" onChange={ this.handleStringChange } />
             </div>
         );
     }
@@ -412,5 +490,5 @@ var ColorPicker = React.createClass({
 
 React.render(
     <App />
-    , document.body
+    , document.querySelector('.app-container')
 );

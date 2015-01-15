@@ -1,0 +1,71 @@
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background-color: transparent; }
+
+html {
+  background-image: url(../resources/subtle_dots_@2X.png);
+  background-size: 27px 15px; }
+
+.container {
+  max-width: 600px;
+  height: 100%;
+  margin: auto; }
+
+.header {
+  padding-top: 60px;
+  padding-bottom: 20px; }
+  .header h1 {
+    margin: 0;
+    font-size: 50px;
+    line-height: 0.9;
+    font-weight: regular;
+    font-style: normal; }
+  .header .logo {
+    height: .9em;
+    width: .9em;
+    margin-bottom: -.1em; }
+
+.app-container, .app {
+  width: 100%; }
+
+.app {
+  display: flex; }
+
+.preview, .toolbar {
+  box-sizing: border-box; }
+
+.preview {
+  flex: 1;
+  padding: 1em;
+  border-radius: .6em;
+  height: 100%;
+  text-align: center;
+  background-color: #e5e9e9; }
+  .preview svg {
+    width: 100px;
+    height: 100px; }
+
+.toolbar {
+  flex: 1;
+  margin-left: 1em;
+  height: 100%; }
+  .toolbar svg {
+    height: 100px; }
+
+.slider-widget, .checkbox-widget {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em; }
+  .slider-widget input[type="text"], .checkbox-widget input[type="text"] {
+    width: 3em;
+    text-align: center; }
+  .slider-widget input[type="range"], .checkbox-widget input[type="range"] {
+    vertical-align: middle;
+    margin-left: 0.5em;
+    margin-right: 0.5em; }
+  .slider-widget .label, .checkbox-widget .label {
+    display: inline-block;
+    width: 3.5em; }
+
+/*# sourceMappingURL=main.css.map */
