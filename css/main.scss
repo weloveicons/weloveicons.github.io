@@ -1,3 +1,5 @@
+---
+---
 html, body {
     width: 100%;
     height: 100%;
@@ -14,6 +16,9 @@ html {
     max-width: 600px;
     height: 100%;
     margin: auto;
+    padding-bottom: 2em;
+    margin-bottom: -2em;
+    box-sizing: border-box;
 }
 
 .header {
@@ -31,6 +36,14 @@ h1 {
     width: .9em;
     margin-bottom: -.1em;
 }
+}
+
+.footer {
+    height: 2em;
+    background-color: #288edf;
+    color: white;
+    line-height: 2em;
+    text-align: center;
 }
 
 .app-container, .app {
@@ -78,5 +91,41 @@ h1 {
     .label {
         display: inline-block;
         width: 3.5em;
+    }
+}
+
+.color-widget {
+    position: relative;
+    * { display: inline-block; 
+        vertical-align: top; }
+    .label {
+        width: 3.5em;
+    }
+    .color-preview {
+        width: 2em;
+        height: 2em;
+        .swatch {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #bbb;
+            border-radius: .2em;
+            box-sizing: border-box;
+        }
+    }
+    .color-popup-hidden {
+        visibility: hidden;
+    }
+    .color-popup {
+        position: absolute;
+        top: 2em;
+        left: 5.5em;
+        padding: 1em;
+        background-color: white;
+        border: 1px solid #bbb;
+        border-radius: .2em;
+        * { padding: .2em; }
+        input[type="text"] {
+            width: 5em;
+        }
     }
 }

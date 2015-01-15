@@ -1,28 +1,3 @@
-var App = React.createClass({
-    getInitialState: function() {
-        return { 
-            size: 50,
-            stroke: 1,
-            corner: 0,
-            fill: false,
-            color: "rgb(0,0,0)"
-         };
-    },
-    handleValueChange: function(name, value) {
-            var obj = {};
-            obj[name] = value;
-            this.setState(obj);
-    },
-    render: function() {
-        return (
-            <div className="app">
-                <Preview { ...this.state } />
-                <Toolbar { ...this.state } valueChanged={ this.handleValueChange } />
-            </div>
-        );
-    }
-});
-
 var icons = [
 {
     name: "Trash",
@@ -86,15 +61,43 @@ var icons = [
     ]
 }];
 
-// var icon = {
-//     name: 'image',
-//     viewBox: [0, 0, 45, 35],
-//     elements: [
-//         { element: 'rect', x: 3, y: 2, width: 39, height: 30 },
-//         { element: 'circle', cx: 31.5, cy: 9.5, r: 2.5 },
-//         { element: 'polyline', points: [ 3,29, 16,15, 25.5,25.5, 32.5,18.75, 42,28.5 ] }
-//     ]
-// }
+var App = React.createClass({
+    getInitialState: function() {
+        return { 
+            size: 50,
+            stroke: 1,
+            corner: 0,
+            fill: false,
+            color: "rgb(0,0,0)"
+         };
+    },
+    handleValueChange: function(name, value) {
+            var obj = {};
+            obj[name] = value;
+            this.setState(obj);
+    },
+    render: function() {
+        return (
+            <div className="app">
+                <Preview { ...this.state } />
+                <Toolbar { ...this.state } valueChanged={ this.handleValueChange } />
+            </div>
+        );
+    }
+});
+
+function distance(p1, p2) {
+    var dx = p2.x - p1.x,
+        dy = p2.y - p1.y;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+function clampR(p1, p2, p3, r) {
+    var d = Math.min(distance(p1, p2), distance(p2, p3));
+    d /= 2;
+    return Math.min(d, r);
+}
+
 var Element = React.createClass({
     cutoutEdges: function(points, r, closed) {
         var curves = closed ? points.length : points.length - 2;
@@ -103,7 +106,7 @@ var Element = React.createClass({
                 return prev.concat(i > 0 ? 'L' : 'M', curr);
             }, []);
         }
-        var i, p1, p2, p3, result = [], arcs;
+        var i, p1, p2, p3, result = [], clampedR, arcs;
         for (var i = 0; i < curves; i++) {
             p1 = points[i];
             p1 = { x: p1[0], y: p1[1] };
@@ -111,7 +114,8 @@ var Element = React.createClass({
             p2 = { x: p2[0], y: p2[1] };
             p3 = points[(i + 2) % points.length];
             p3 = { x: p3[0], y: p3[1] };
-            arcs = PathUtils.curveCorner(p1, p2, p3, r);
+            clampedR = clampR(p1, p2, p3, r);
+            arcs = PathUtils.curveCorner(p1, p2, p3, clampedR);
             arcs.forEach(function(arc, j) {
                 if (j === 0)
                     result.push(closed && !i ? 'M' : 'L', arc.x1, arc.y1);
@@ -313,10 +317,11 @@ var ColorPicker = React.createClass({
     getInitialState: function() {
         return {
             whiteTint: 0,
-            blackTint: 0,
+            blackTint: 1,
             hue: 0,
             hueDragging: false,
-            tintDragging: false
+            tintDragging: false,
+            visible: false
         }
     },
     hueToRGB: function(offset) {
@@ -345,7 +350,6 @@ var ColorPicker = React.createClass({
             default: break;
         }
         color = color.map(Math.round);
-        console.log("Hue to RGB", color);
         return color;
     },
     tint: function(color, tint, p) {
@@ -364,7 +368,9 @@ var ColorPicker = React.createClass({
         color = this.tint(color, [255, 255, 255], this.state.whiteTint);
         color = this.tint(color, [0, 0, 0], this.state.blackTint);
         color = color.map(function(number) {
-            return Number(Math.round(number)).toString(16);
+            var result = Number(Math.round(number)).toString(16);
+            if (result.length < 2) result = "0" + result;
+            return result;
         });
         return color.join("");
     },
@@ -374,12 +380,18 @@ var ColorPicker = React.createClass({
         color = this.tint(color, [0, 0, 0], this.state.blackTint);
         return this.colorString(color);
     },
+    clamp: function(value, min, max) {
+        if (value < min) return min;
+        if (value > max) return max;
+        return value;
+    },
     hueDragStart: function() { this.setState({ hueDragging: true })},
     hueDragEnd: function() { this.setState({ hueDragging: false })},
     hueChange: function(event) {
         var offset = $(event.target).offset();
         obj = {};
         obj.hue = (event.pageY - offset.top) / 100.0;
+        obj.hue = this.clamp(obj.hue, 0, 1);
         this.setState(obj);
         this.handleValueChange('color', this.currentColorString());
     },
@@ -389,7 +401,9 @@ var ColorPicker = React.createClass({
         var offset = $(event.target).offset();
         var obj = {};
         obj.whiteTint = (100 - event.pageX + offset.left) / 100.0;
+        obj.whiteTint = this.clamp(obj.whiteTint, 0, 1);
         obj.blackTint = (event.pageY - offset.top) / 100.0;
+        obj.blackTint = this.clamp(obj.blackTint, 0, 1);
         this.setState(obj);
         this.handleValueChange('color', this.currentColorString());
     },
@@ -422,7 +436,6 @@ var ColorPicker = React.createClass({
         var hue = [0, 0, 0];
         hue[maxi] = 255;
         hue[midi] = Math.round(color[midi] - 255 * b * (1 - w)) / (b * w);
-        console.log("Hue", hue, "tintw", 1 - w, "tintb", 1 - b);
         var huePeak = (maxi) / 3.0;
         var hueOffset = ((maxi + 1) % 3 === midi) ? hue[midi] : -hue[midi];
         hueOffset = hueOffset / 255.0 / 6.0;
@@ -430,59 +443,79 @@ var ColorPicker = React.createClass({
         if (hue < 0) hue += 1;
         this.setState({ hue: hue, whiteTint: 1 - w, blackTint: 1 - b });
     },
+    toggleVisibility: function(event) {
+        this.setState({ visible: !this.state.visible });
+    },
+    flattenPoints: function(points) {
+        return points.reduce(function(prev, curr, i) {
+            prev += i % 2 ? ' ' : ',';
+            prev += curr;
+            return prev;
+        });
+    },
     render: function() {
         var hueColor = this.hueToRGB(this.state.hue),
             tintColor = this.tint(hueColor, [255, 255, 255], this.state.whiteTint);
         tintColor = this.tint(tintColor, [0, 0, 0], this.state.blackTint);
         var hueY = this.state.hue * 100;
-        var points = [20, hueY, 30, hueY - 6, 30, hueY + 6];
-        points = points.reduce(function(prev, curr, i) {
-            prev += i % 2 ? ' ' : ',';
-            prev += curr;
-            return prev;
-        });
+        var width = 8, height = 4;
+        var lpoints = [10, hueY, 10 - width, hueY - height, 10 - width, hueY + height],
+            rpoints = [30, hueY, 30 + width, hueY - height, 30 + width, hueY + height];
+        lpoints = this.flattenPoints(lpoints);
+        rpoints = this.flattenPoints(rpoints);
         return (
-            <div>
-            <svg id="color-preview" viewBox="0 0 50 50">
-                <rect x="0" y="0" height="50" width="50" fill={ this.colorString(tintColor) } />
-            </svg>
-            <svg id="tint" viewBox="0 0 100 100" onClick={ this.tintChange } onMouseDown={ this.tintDragStart } onMouseUp={ this.tintDragEnd } onMouseMove={ this.state.tintDragging ? this.tintChange : null }>
-                <defs>
-                    <linearGradient id="whiteTint" x1="0" x2="1" y1="0" y2="0">
-                        <stop offset="0%" stopColor="white" stopOpacity="1" />
-                        <stop offset="100%" stopColor="white" stopOpacity="0" />
-                    </linearGradient>
-                    <linearGradient id="blackTint" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stopColor="black" stopOpacity="0" />
-                        <stop offset="100%" stopColor="black" stopOpacity="1" />
-                    </linearGradient>
-                    <mask id="focus-mask">
-                        <rect x="0" y="0" width="100" height="100" fill="white" />
-                        <circle cx={ (1 - this.state.whiteTint) * 100 } cy={ this.state.blackTint * 100 } r="10" stroke="black" strokeWidth="2" fill="white"/>
-                    </mask>
-                </defs>
-                <g style={{ mask: "url(#focus-mask)" }}>
-                    <rect id="background" x="0" width="100" y="0" height="100" fill={ this.colorString(hueColor) } />
-                    <rect x="0" width="100" y="0" height="100" fill="url(#whiteTint)" />
-                    <rect x="0" width="100" y="0" height="100" fill="url(#blackTint)" />
-                </g>
-            </svg>
-            <svg id="hue" viewBox="0 0 30 100" onClick={ this.hueChange } onMouseDown={ this.hueDragStart } onMouseUp={ this.hueDragEnd } onMouseMove={ this.state.hueDragging ? this.hueChange : null }>
-                <defs>
-                    <linearGradient id="hueBar" x1="0" x2="0" y1="0" y2="1" >
-                        <stop offset="0%" stopColor="#ff0000" />
-                        <stop offset="16.67%" stopColor="#ffff00" />
-                        <stop offset="33.33%" stopColor="#00ff00" />
-                        <stop offset="50%" stopColor="#00ffff" />
-                        <stop offset="66.67%" stopColor="#0000ff" />
-                        <stop offset="83.33%" stopColor="#ff00ff" />
-                        <stop offset="100%" stopColor="#ff0000" />
-                    </linearGradient>
-                </defs>
-                <rect x="0" y="0" height="100" width="20" fill="url(#hueBar)" />
-                <polygon points={ points } />
-            </svg>
-            <input type="text" className="topcoat-text-input" onChange={ this.handleStringChange } />
+            <div className='color-widget'>
+                <span className='label'>color</span>
+                <div className='color-preview'>
+                    <div className='swatch' style={{ background: this.colorString(tintColor) }} onClick={ this.toggleVisibility } ref='swatch'>
+                    </div>
+                </div>
+                <div className={ 'color-popup ' + (this.state.visible ? 'color-popup-visible' : 'color-popup-hidden') }
+                    ref='popup'>
+                    <svg id="tint" viewBox="0 0 100 100" onClick={ this.tintChange } onMouseDown={ this.tintDragStart } onMouseUp={ this.tintDragEnd } onMouseMove={ this.state.tintDragging ? this.tintChange : null }>
+                        <defs>
+                            <linearGradient id="whiteTint" x1="0" x2="1" y1="0" y2="0">
+                                <stop offset="0%" stopColor="white" stopOpacity="1" />
+                                <stop offset="100%" stopColor="white" stopOpacity="0" />
+                            </linearGradient>
+                            <linearGradient id="blackTint" x1="0" x2="0" y1="0" y2="1">
+                                <stop offset="0%" stopColor="black" stopOpacity="0" />
+                                <stop offset="100%" stopColor="black" stopOpacity="1" />
+                            </linearGradient>
+                            <mask id="focus-mask">
+                                <rect x="0" y="0" width="100" height="100" fill="white" />
+                                <circle cx={ (1 - this.state.whiteTint) * 100 } cy={ this.state.blackTint * 100 } r="10" stroke="black" strokeWidth="2" fill="white"/>
+                            </mask>
+                        </defs>
+                        <g style={{ mask: "url(#focus-mask)" }}>
+                            <rect id="background" x="0" width="100" y="0" height="100" fill={ this.colorString(hueColor) } />
+                            <rect x="0" width="100" y="0" height="100" fill="url(#whiteTint)" />
+                            <rect x="0" width="100" y="0" height="100" fill="url(#blackTint)" />
+                        </g>
+                    </svg>
+                    <svg id="hue-frame" viewBox="0 0 40 100">
+                        <svg id="hue" x="10" width="20" height="100" viewBox="0 0 20 100" onClick={ this.hueChange } onMouseDown={ this.hueDragStart } onMouseUp={ this.hueDragEnd } onMouseMove={ this.state.hueDragging ? this.hueChange : null }>
+                            <defs>
+                                <linearGradient id="hueBar" x1="0" x2="0" y1="0" y2="1" >
+                                    <stop offset="0%" stopColor="#ff0000" />
+                                    <stop offset="16.67%" stopColor="#ffff00" />
+                                    <stop offset="33.33%" stopColor="#00ff00" />
+                                    <stop offset="50%" stopColor="#00ffff" />
+                                    <stop offset="66.67%" stopColor="#0000ff" />
+                                    <stop offset="83.33%" stopColor="#ff00ff" />
+                                    <stop offset="100%" stopColor="#ff0000" />
+                                </linearGradient>
+                            </defs>
+                            <rect x="0" y="0" height="100" width="20" fill="url(#hueBar)" />
+                        </svg>
+                        <polygon points={ lpoints } />
+                        <polygon points={ rpoints } />
+                    </svg>
+                    <label>
+                        #: 
+                        <input type="text" className="topcoat-text-input" value={ this.hexString() } onChange={ this.handleStringChange } />
+                    </label>
+                </div>
             </div>
         );
     }
