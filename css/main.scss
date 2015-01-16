@@ -38,6 +38,18 @@ h1 {
 }
 }
 
+.logotype {
+    margin: 0;
+    line-height: 0.9;
+    font-weight: regular;
+    font-style: normal;
+    .logo {
+        height: 0.9em;
+        width: 0.9em;
+        margin-bottom: -.1em;
+    }
+}
+
 .footer {
     height: 2em;
     background-color: #288edf;
@@ -46,11 +58,7 @@ h1 {
     text-align: center;
 }
 
-.app-container, .app {
-    width: 100%;
-}
-
-.app {
+.app-main {
     display: flex;
 }
 
@@ -127,5 +135,47 @@ h1 {
         input[type="text"] {
             width: 5em;
         }
+    }
+}
+
+input[type="file"] {
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    -webkit-opacity:0;
+    -moz-opacity:0;
+    opacity:0
+}
+
+.popup {
+    position: absolute;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 600px;
+    top: 3em;
+    left: 50%;
+    padding: 3em 6em;
+    border: 1px solid #bbb;
+    border-radius: .2em;
+    transform: translateX(-50%);
+    background-color: white;
+    .logotype {
+        position: absolute;
+        top: 1em;
+        left: 2em;
+    }
+    .buttons {
+        text-align: right;
+        & > * {
+            margin-right: 1em;
+        }
+    }
+    .ok {
+        text-align: center;
+    }
+    &.hidden {
+        display: none;
     }
 }

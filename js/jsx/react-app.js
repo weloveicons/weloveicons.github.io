@@ -68,7 +68,8 @@ var App = React.createClass({
             stroke: 1,
             corner: 0,
             fill: false,
-            color: "rgb(0,0,0)"
+            color: "rgb(0,0,0)",
+            "icons": icons
          };
     },
     handleValueChange: function(name, value) {
@@ -79,8 +80,163 @@ var App = React.createClass({
     render: function() {
         return (
             <div className="app">
-                <Preview { ...this.state } />
-                <Toolbar { ...this.state } valueChanged={ this.handleValueChange } />
+                <div className="app-main">
+                    <Preview { ...this.state } />
+                    <Toolbar { ...this.state } valueChanged={ this.handleValueChange } />
+                </div>
+                <FilePicker { ...this.state } valueChanged={ this.handleValueChange } />
+            </div>
+        );
+    }
+});
+
+var Popup = React.createClass({
+    getInitialState: function() {
+        return {
+            visible: false
+        }
+    },
+    close: function() {
+        this.setState({ visible: false });
+    },
+    render: function() {
+        return (
+            <div className='popup visible'>
+            <h3 className='logotype'>we <img className="logo" src="resources/logo.svg" /><br/>
+            icons</h3>
+            <div className='content'>
+                <p>Dear Customer,</p>
+                <p>We are working to make this site as functional as possible, but we are still in the very early stages.</p>
+                <p>As such, upload will only work with SVG files in a [0, 0, 50, 50] coordinate system, and will only work with polygons, polylines, circles, and rectangles (no paths!).</p>
+                <p>Additionally, elements in a group (&lt;g&gt;) will be treated as contrast details (they will punch out the fill color in a filled icon).</p>
+                <p>~The Team</p>
+            </div>
+            <div className='buttons'>
+                <button className='topcoat-button cancel' onClick={ this.close() }>Cancel</button>
+                <button className='topcoat-button ok'>OK</button>
+            </div>
+            </div>
+        );
+    }
+});
+
+var FilePicker = React.createClass({
+    processElement: function(element) {
+        var result = { element: element.tagName };
+        var temp, i;
+        switch(element.tagName) {
+            case 'polyline':
+                // polyline points is a list of comma separated numbers
+                temp = element.style.fill;
+                result.fill = temp && temp.length ? "solid" : "none";
+                temp = element.getAttribute('points');
+                temp = temp.split(',');
+                temp = temp.map(function(num) { return Number(num); });
+                result.points = [];
+                for (i = 0; i < temp.length - 1; i += 2)
+                    result.points.push([temp[i], temp[i+1]]);
+                break;
+            case 'polygon':
+                // polygon points is a list of space separated comma separated pairs
+                temp = element.getAttribute('points');
+                temp = temp.split(' ');
+                temp = temp.map(function(pair) { return pair.split(','); });
+                result.points = temp;
+                result.points = result.points.map(function(pair) {
+                    return [ Number(pair[0]), Number(pair[1]) ];
+                });
+                break;
+            case 'rect':
+                result.x = Number(element.getAttribute('x'));
+                result.y = Number(element.getAttribute('y'));
+                result.width = Number(element.getAttribute('width'));
+                result.height = Number(element.getAttribute('height'));
+                break;
+            case 'circle':
+                result.cx = Number(element.getAttribute('cx'));
+                result.cy = Number(element.getAttribute('cy'));
+                result.r = Number(element.getAttribute('r'));
+                break;
+            default:
+                console.warning("Unsupported SVG element type ", element.tagName);
+                return null;
+        }
+        if (element.parentNode.tagName === 'g')
+            result.role = 'accent';
+        return result;
+    },
+    processIcon: function(name, svg) {
+        // { name: "", viewBox: [4], elements: [ { } ]}
+        // { element: "rectangle", x: #, y: #, width: #, height: # }
+        // { element: "circle", cx: #, cy: #, r: # }
+        // { element: "polygon", points: [[2]] }
+        // { element: "polyline", points: [[2]] }
+        // optional: role="accent", fill="none"
+        name = name.replace(/\.\s\S+$/, '');
+        svg = svg.replace(/^[\s\S]*(<svg)/i, "$1");
+        var result = { name: name, viewBox: [0, 0, 50, 50], elements: [] };
+        var div = document.createElement("div");
+        div.innerHTML = svg;
+        svg = div.querySelector("svg");
+        var elements = svg.querySelectorAll("circle, rect, polyline, polygon");
+        for (var i = 0; i < elements.length; i++) {
+            var element = this.processElement(elements[i]);
+            if (element)
+                result.elements.push(element);
+        }
+        return result;
+    },
+    filesPicked: function(event) {
+        var files = event.target.files,
+        file, i, reader;
+        if (files.length < 1)
+            return;
+        var newIcons = [], loads = files.length, outer = this;
+        for (i = 0; i < files.length; i++) {
+            file = files[i];
+            if (file.type != 'image/svg+xml') {
+                loads--;
+                continue;
+            }
+            reader = new FileReader();
+            reader.onload = (function(file, model) {
+                return function(e) {
+                    var result = e.target.result;
+                    result = outer.processIcon(file.name, result);
+                    newIcons.push(result);
+                    loads--;
+                    if (loads === 0)
+                        outer.props.valueChanged("icons", newIcons);
+                };
+            })(file, this.model);
+            reader.readAsText(file);
+        }
+    },
+    close: function() { this.setState( { visible: false } ); },
+    open: function() { this.setState( { visible: true } ); },
+    getInitialState: function() { return { visible: false }; },
+    render: function() {
+        return (
+            <div>
+                <button className='topcoat-button--large--cta' onClick={ this.open } >Upload Files&hellip;</button>
+                <div className={ 'popup ' + (this.state.visible ? 'visible' : 'hidden') }>
+                    <h3 className='logotype'>we <img className="logo" src="resources/logo.svg" /><br/>
+                    icons</h3>
+                    <div className='content'>
+                        <p>Dear Customer,</p>
+                        <p>We are working to make this site as functional as possible, but we are still in the very early stages.</p>
+                        <p>As such, upload will only work with SVG files in a [0, 0, 50, 50] coordinate system, and will only work with polygons, polylines, circles, and rectangles (no paths!).</p>
+                        <p>Additionally, elements in a group (&lt;g&gt;) will be treated as contrast details (they will punch out the fill color in a filled icon).</p>
+                        <p>~The Team</p>
+                    </div>
+                    <div className='buttons'>
+                        <button className='topcoat-button cancel' onClick={ this.close }>Cancel</button>
+                        <div className='topcoat-button ok'>
+                            OK
+                            <input type='file' name='files[]' id='picker' multiple onChange={ this.filesPicked } />
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -232,7 +388,7 @@ var Icon = React.createClass({
 var Preview = React.createClass({
     render: function() {
         var props = this.props;
-        var elements = icons.map(function(icon) {
+        var elements = props.icons.map(function(icon) {
             return (<Icon icon={ icon } {...props } key={ icon.name }/>);
         });
         return (
