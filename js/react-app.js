@@ -187,6 +187,7 @@ var FilePicker = React.createClass({displayName: "FilePicker",
         return result;
     },
     filesPicked: function(event) {
+        _gaq.push(['_trackEvent', 'Upload', 'Files Picked']);
         var files = event.target.files,
         file, i, reader;
         if (files.length < 1)
@@ -196,6 +197,8 @@ var FilePicker = React.createClass({displayName: "FilePicker",
             file = files[i];
             if (file.type != 'image/svg+xml') {
                 loads--;
+                if (loads === 0)
+                    outer.close();
                 continue;
             }
             reader = new FileReader();
@@ -205,20 +208,25 @@ var FilePicker = React.createClass({displayName: "FilePicker",
                     result = outer.processIcon(file.name, result);
                     newIcons.push(result);
                     loads--;
-                    if (loads === 0)
+                    if (loads === 0) {
                         outer.props.valueChanged("icons", newIcons);
+                        outer.close();
+                    }
                 };
             })(file, this.model);
             reader.readAsText(file);
         }
     },
     close: function() { this.setState( { visible: false } ); },
-    open: function() { this.setState( { visible: true } ); },
+    open: function() {
+        _gaq.push(['_trackEvent', 'Upload', 'Popup']);
+        this.setState( { visible: true } );
+    },
     getInitialState: function() { return { visible: false }; },
     render: function() {
         return (
             React.createElement("div", null, 
-                React.createElement("button", {className: "topcoat-button--large--cta", onClick:  this.open}, "Upload Files…"), 
+                React.createElement("button", {className: "topcoat-button--large--cta", onClick:  this.open}, "Upload SVG…"), 
                 React.createElement("div", {className:  'popup ' + (this.state.visible ? 'visible' : 'hidden') }, 
                     React.createElement("h3", {className: "logotype"}, "we ", React.createElement("img", {className: "logo", src: "resources/logo.svg"}), React.createElement("br", null), 
                     "icons"), 

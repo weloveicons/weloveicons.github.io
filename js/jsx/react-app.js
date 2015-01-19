@@ -187,6 +187,7 @@ var FilePicker = React.createClass({
         return result;
     },
     filesPicked: function(event) {
+        _gaq.push(['_trackEvent', 'Upload', 'Files Picked']);
         var files = event.target.files,
         file, i, reader;
         if (files.length < 1)
@@ -196,6 +197,8 @@ var FilePicker = React.createClass({
             file = files[i];
             if (file.type != 'image/svg+xml') {
                 loads--;
+                if (loads === 0)
+                    outer.close();
                 continue;
             }
             reader = new FileReader();
@@ -205,20 +208,25 @@ var FilePicker = React.createClass({
                     result = outer.processIcon(file.name, result);
                     newIcons.push(result);
                     loads--;
-                    if (loads === 0)
+                    if (loads === 0) {
                         outer.props.valueChanged("icons", newIcons);
+                        outer.close();
+                    }
                 };
             })(file, this.model);
             reader.readAsText(file);
         }
     },
     close: function() { this.setState( { visible: false } ); },
-    open: function() { this.setState( { visible: true } ); },
+    open: function() {
+        _gaq.push(['_trackEvent', 'Upload', 'Popup']);
+        this.setState( { visible: true } );
+    },
     getInitialState: function() { return { visible: false }; },
     render: function() {
         return (
             <div>
-                <button className='topcoat-button--large--cta' onClick={ this.open } >Upload Files&hellip;</button>
+                <button className='topcoat-button--large--cta' onClick={ this.open } >Upload SVG&hellip;</button>
                 <div className={ 'popup ' + (this.state.visible ? 'visible' : 'hidden') }>
                     <h3 className='logotype'>we <img className="logo" src="resources/logo.svg" /><br/>
                     icons</h3>
