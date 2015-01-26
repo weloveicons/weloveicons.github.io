@@ -225,8 +225,9 @@ var FilePicker = React.createClass({displayName: "FilePicker",
     getInitialState: function() { return { visible: false }; },
     render: function() {
         return (
-            React.createElement("div", null, 
-                React.createElement("button", {className: "topcoat-button--large--cta", onClick:  this.open}, "Upload SVG…"), 
+            React.createElement("div", {className: "upload-pod"}, 
+                React.createElement("p", null, "Upload your own SVG files and adjust their styles"), 
+                React.createElement("button", {className: "topcoat-button--large--cta", onClick:  this.open}, "Upload…"), 
                 React.createElement("div", {className:  'popup ' + (this.state.visible ? 'visible' : 'hidden') }, 
                     React.createElement("h3", {className: "logotype"}, "we ", React.createElement("img", {className: "logo", src: "resources/logo.svg"}), React.createElement("br", null), 
                     "icons"), 

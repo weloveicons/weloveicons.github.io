@@ -12,6 +12,10 @@ html {
     background-size: 27px 15px;    
 }
 
+body {
+    font-family: 'Source Sans Pro', sans-serif;
+}
+
 .container {
     max-width: 600px;
     height: 100%;
@@ -28,7 +32,6 @@ h1 {
     margin: 0;
     font-size: 50px;
     line-height: 0.9;
-    font-weight: regular;
     font-style: normal;
 }
 .logo {
@@ -149,6 +152,11 @@ input[type="file"] {
     opacity:0
 }
 
+.upload-pod {
+    display: inline-block;
+    text-align: center;
+}
+
 .popup {
     position: absolute;
     box-sizing: border-box;
@@ -159,6 +167,7 @@ input[type="file"] {
     padding: 3em 6em;
     border: 1px solid #bbb;
     border-radius: .2em;
+    text-align: left;
     transform: translateX(-50%);
     background-color: white;
     .logotype {

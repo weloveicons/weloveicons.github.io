@@ -225,8 +225,9 @@ var FilePicker = React.createClass({
     getInitialState: function() { return { visible: false }; },
     render: function() {
         return (
-            <div>
-                <button className='topcoat-button--large--cta' onClick={ this.open } >Upload SVG&hellip;</button>
+            <div className='upload-pod'>
+                <p>Upload your own SVG files and adjust their styles</p>
+                <button className='topcoat-button--large--cta' onClick={ this.open } >Upload&hellip;</button>
                 <div className={ 'popup ' + (this.state.visible ? 'visible' : 'hidden') }>
                     <h3 className='logotype'>we <img className="logo" src="resources/logo.svg" /><br/>
                     icons</h3>
